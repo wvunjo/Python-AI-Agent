@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
+from functions.call_function import available_functions
 
 def main():
     load_dotenv()
-    print("Hello from python-ai-agent!")
     
     api_key = os.environ.get("GEMINI_API_KEY")
     if api_key is None:
@@ -26,7 +26,8 @@ def main():
     response = client.models.generate_content(
         model = "gemini-2.5-flash",
         contents = messages,
-        config = types.GenerateContentConfig(system_instruction=system_prompt),
+        config = types.GenerateContentConfig(
+            tools = [available_functions], system_instruction=system_prompt),
         )
     # Defensive check
     if response.usage_metadata is None:
@@ -40,7 +41,11 @@ def main():
         print(f"Prompt tokens: {prompt_tokens}")
         print(f"Response tokens: {response_tokens}")
     
-    print(response.text)
+    if response.function_calls:
+        for call in response.function_calls:
+            print(f"Calling function: {call.name}({call.args})")
+    else:
+        print(f"Response:\n{response.text}")
 
 if __name__ == "__main__":
     main()
