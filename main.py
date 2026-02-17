@@ -3,6 +3,7 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from prompts import system_prompt
 
 def main():
     load_dotenv()
@@ -22,7 +23,11 @@ def main():
    
 
     
-    response = client.models.generate_content(model = "gemini-2.5-flash", contents = messages)
+    response = client.models.generate_content(
+        model = "gemini-2.5-flash",
+        contents = messages,
+        config = types.GenerateContentConfig(system_instruction=system_prompt),
+        )
     # Defensive check
     if response.usage_metadata is None:
         raise RuntimeError("Gemini API returned no usage metadata. This may indicate a failed or incomplete API response."
