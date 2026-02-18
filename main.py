@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
+from functions.call_function import call_function
 from functions.call_function import available_functions
 
 def main():
@@ -41,11 +42,32 @@ def main():
         print(f"Prompt tokens: {prompt_tokens}")
         print(f"Response tokens: {response_tokens}")
     
+    function_results = []
+
+
     if response.function_calls:
         for call in response.function_calls:
-            print(f"Calling function: {call.name}({call.args})")
-    else:
-        print(f"Response:\n{response.text}")
+            function_call= call_function(call, verbose=args.verbose)
+            if not function_call.parts:
+                raise Exception("The result should have parts!")
+            if function_call.parts[0].function_response is None:
+                raise Exception("The result should have parts!")
+            if function_call.parts[0].function_response.response is None:
+                raise Exception("The result should have parts!")
+            function_results.append(function_call.parts[0])
+            if args.verbose:
+                print(f"-> {function_call.parts[0].function_response.response}")
+
+
+
+
+                
+                
+            
+
+
+            
+    
 
 if __name__ == "__main__":
     main()
